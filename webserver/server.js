@@ -1,12 +1,6 @@
-
 /*
-Serial to Socket.io example
-
-Shows how to make a basic webSocket connection between a client and a server
-using Socket.io version 1.0 or later (http://socket.io/)
 To run it from the command line:
 node server.js serialport
-
 where serialport is the name of your serial port.
 
 based on code by Tom Igoe
@@ -14,15 +8,15 @@ based on code by Tom Igoe
 
 // server initialization:
 var express = require('express');		            // include express.js
-	io = require('socket.io'),				        // include socket.io
-	app = express(),						        // make an instance of express.js
- 	server = app.listen(8080),				        // start a server with the express instance
-	socketServer = io(server);	 			        // make a socket server using the express server
+	io = require('socket.io'),				            // include socket.io
+	app = express(),						                  // make an instance of express.js
+ 	server = app.listen(8080),				            // start a server with the express instance
+	socketServer = io(server);	 			            // make a socket server using the express server
 
 // serial port initialization:
 var serialport = require('serialport'),			    // include the serialport library
-	SerialPort  = serialport.SerialPort,			// make a local instance of serial
-	portName = process.argv[2],						// get the port name from the command line
+	SerialPort  = serialport.SerialPort,			    // make a local instance of serial
+	portName = process.argv[2],						        // get the port name from the command line
 	portConfig = {
 		baudRate: 115200,
 		// call myPort.on('data') when a newline is received:
@@ -79,11 +73,8 @@ function openSocket(socket){
         if (error !== null) {
           //console.log('exec error: ' + error);
           socket.emit('login', '<font color="darkred">Result ERR:</font>' + error);
-          //socket.emit('login', 'Result ERR: ' + stderr);
         }
     });
-
-
 	});
 
 	// this function runs if there's input from the serialport:
