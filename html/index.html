@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <title>1NTERRUPT</title>
+    <script src="/socket.io/socket.io.js" type="text/javascript"></script>
+    <script src="/lib/p5.js"              type="text/javascript"></script> 
+    <script src="/lib/p5.dom.js"          type="text/javascript"></script>
+    <script src="login.js"                type="text/javascript" ></script>
+  </head>
+
+  <body>
+    <img style="height:200px" src="media/1NTERRUPT.png"/>
+
+    <p style="font-size:18pt">To enter Traffic Lights Monitor <br/>Please select role and enter password</p>
+
+    <form method="get" action="/TrafficLights.html">
+      <div style="float:left">
+        <img src="media/worker.png"/>
+        <br/><input type="radio" name="username" value="worker" checked/> 
+        <strong>Worker</strong>
+      </div>
+      
+      <div style="float:left">
+        <img src="media/operator.png"/>
+        <br/><input type="radio" name="username" value="operator"/>
+        <strong>Operator</strong>
+      </div>
+      
+      <div>
+        <img src="media/sysadmin.png"/>
+        <br/><input type="radio" name="username" value="sysadmin"/>
+        <strong>SysAdmin</strong>
+      </div>
+      
+      <br/>Password:
+      <input type="password" name="password"/>
+      <input type="submit"/>
+    </form>
+    
+  </body>
+</html>

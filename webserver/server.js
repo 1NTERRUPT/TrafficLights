@@ -7,16 +7,16 @@ based on code by Tom Igoe
 */
 
 // server initialization:
-var express = require('express');		            // include express.js
-	io = require('socket.io'),				            // include socket.io
-	app = express(),						                  // make an instance of express.js
- 	server = app.listen(8080),				            // start a server with the express instance
-	socketServer = io(server);	 			            // make a socket server using the express server
+var express = require('express'),		            // include express.js
+	io = require('socket.io'),				        // include socket.io
+	app = express(),						        // make an instance of express.js
+ 	server = app.listen(8080),		                // start a server with the express instance
+	socketServer = io(server);	 			        // make a socket server using the express server
 
 // serial port initialization:
 var serialport = require('serialport'),			    // include the serialport library
-	SerialPort  = serialport.SerialPort,			    // make a local instance of serial
-	portName = process.argv[2],						        // get the port name from the command line
+	SerialPort = serialport.SerialPort,	            // make a local instance of serial
+	portName = process.argv[2],		                // get the port name from the command line
 	portConfig = {
 		baudRate: 115200,
 		// call myPort.on('data') when a newline is received:
@@ -31,19 +31,20 @@ var crypto = require('crypto-js');
 
 
 //  set up server and socketServer listener functions:
-app.use(express.static('..'));					    // serve files from the public folder
-app.get('/:name', serveFiles);						// listener for all static file requests
-var favicon = require('serve-favicon');
-app.use(favicon(__dirname + '/media/favicon.ico'));
+app.use(express.static('../html'));		            // DocumentRoot where html files are located
 
-//app.use(favicon(path.join(__dirname,'WebServer','media','favicon.ico')));
+app.get('/:name', serveFiles);						// listener for all static file requests
+//var favicon = require('serve-favicon');
+//app.use(favicon('/media/favicon.ico'));             // favicon.ico filr
+
+//app.use(favicon(path.join('media','favicon.ico')));
 
 
 socketServer.on('connection', openSocket);	        // listener for websocket data
 
 function serveFiles(request, response) {
-	var fileName = request.params.name;				// get the file name from the request
-	response.sendFile(fileName);					// send the file
+	var fileName = request.params.name;				    // get the file name from the request
+	response.sendFile(fileName, { root: __dirname });   // send the file
 }
 
 var exec = require('child_process').exec,
