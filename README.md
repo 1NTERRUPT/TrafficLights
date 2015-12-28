@@ -8,4 +8,6 @@
 1. ln -s /usr/share/TrafficLights/arduino/libraries /usr/share/arduino/
 
 ## Web
-1. cp /usr/share/TrafficLigts/000-default /etc/apache2/sites-enabled/000-default
+1. adduser node
+1. npm install express
+1. cp /usr/share/TrafficLights/node-service /etc/init.d/ 
