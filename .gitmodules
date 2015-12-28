@@ -1,0 +1,6 @@
+[submodule "arduino/libraries/ArduinoJson"]
+	path = arduino/libraries/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson
+[submodule "arduino/libraries/TimerOne"]
+	path = arduino/libraries/TimerOne
+	url = https://github.com/PaulStoffregen/TimerOne
