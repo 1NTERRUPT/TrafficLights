@@ -4,14 +4,14 @@
 // schematics of how LEDs are attached to Arduino
 // Attention in this particular setup HIGH - turns led OFF, LOW - turns led ON
 //
-int ledR1 =  9;     // RED    light for direction 1
-int ledY1 = 10;     // YELLOW light for direction 1
-int ledG1 = 11;     // GREEN  light for direction 1
-int ledR2 =  3;     // RED    light for direction 2
-int ledY2 =  4;     // YELLOW light for direction 2
-int ledG2 =  5;     // GREEN  light for direction 2
-int ledRP =  6;     // RED    light for pedestrian crossing
-int ledGP =  7;     // GREEN  light for pedestrian crossing
+int ledR1 =  5;     // RED    light for direction 1
+int ledY1 =  6;     // YELLOW light for direction 1
+int ledG1 =  7;     // GREEN  light for direction 1
+int ledR2 =  8;     // RED    light for direction 2
+int ledY2 =  9;     // YELLOW light for direction 2
+int ledG2 = 10;     // GREEN  light for direction 2
+int ledRP =  3;     // RED    light for pedestrian crossing
+int ledGP =  4;     // GREEN  light for pedestrian crossing
 int stateTL = 0;
 
 // LED light pattern is represented by bits 1 - light is ON, 0 - light is OFF
@@ -114,11 +114,12 @@ Processing of this check takes less than 0.1ms
 boolean guard(int state) {
     // read LEDs voltages and verify corresponding bit pattern
     unsigned int lightPattern = 0;
-    for (int i=0; i < nlightPins; i++) {      // for each LED available
-        int pin   = lightPinsBits[i][0];    // pin where LED is connected
-        int bit   = lightPinsBits[i][1];    // bit in corresponding pattern
-        int value = 1 - digitalRead(pin);   // check the state of light ON/OFF
-        bitWrite(lightPattern, bit, value); // write bit in the pattern
+    for (int i=0; i < nlightPins; i++) {        // for each LED available
+        int pin   = lightPinsBits[i][0];        // pin where LED is connected
+        int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
+        // int value = 1 - digitalRead(pin);    // check the state of light ON/OFF
+        int value = digitalRead(pin);           // check the state of light ON/OFF
+        bitWrite(lightPattern, bit, value);     // write bit in the pattern
     }
     
     /*
@@ -164,7 +165,8 @@ void lights(int state) {
         int pin   = lightPinsBits[i][0];        // pin where LED is connected
         int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
         int value = bitRead(pattern, bit);      // check the state of light ON/OFF
-        digitalWrite(pin, 1 - value);           // turn the LED ON/OFF (1-value because of Traffic Light Schematics)
+        // digitalWrite(pin, 1 - value);           // turn the LED ON/OFF (1-value because of Traffic Light Schematics)
+        digitalWrite(pin, value);               // turn the LED ON/OFF
     }
     Timer1.initialize(delay*1000);              // set light duration (in microseconds)
 }
@@ -178,7 +180,8 @@ void readLights() {
   for (int i=0; i < nlightPins; i++) {      // for each LED available
     int pin   = lightPinsBits[i][0];        // pin where LED is connected
     int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
-    int value = 1 - digitalRead(pin);       // check the state of light ON/OFF
+    //int value = 1 - digitalRead(pin);     // check the state of light ON/OFF
+    int value = digitalRead(pin);           // check the state of light ON/OFF
     bitWrite(lightPattern, bit, value);     // write bit in the pattern
   }
 
