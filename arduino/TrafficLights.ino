@@ -310,7 +310,7 @@ void loop() {
             Serial.println("SysAdmin priveleges GRANTED");
         } else {
             accessLevel = 0;
-            Serial.println("Restrictions apply");
+            Serial.println("WRONG PASSWORD, Restrictions apply");
         }
         
       }          
