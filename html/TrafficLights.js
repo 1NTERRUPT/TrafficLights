@@ -17,15 +17,19 @@ var report;
 var greeting;
 var urlParams               // URL params which contain name and password
 
+var capture;                // capture image from attached USB video camera
 var trafficLight=[];        // array of Lights constitute Traffic Light
 var r1, y1, g1, r2, y2, g2, rp, gp;
 var accessLevel = 0;
+
+var girl;
+var pedestrianIsle;
 
 function preload() {
   // check name and password
   urlParams = getURLParams();                       // get request from URL parameters
   var username = urlParams.username;                // get username from request
-  var password = urlParams.password;                // get passworf from request
+  var password = urlParams.password;                // get password from request
   var hash     = CryptoJS.MD5(password).toString(); // calculate md5 hash of password
   
   if (username === 'worker' && password === '134565') {
@@ -35,7 +39,7 @@ function preload() {
   } else if (username === 'sysadmin') {
     var data = '{"username":'+username+', "password":'+password+'}';
     console.log('Transmit', data);
-    socket.emit('message', data);                   // send password to controller
+    socket.emit('message', data);                   // send password to Arduino controller
     accessLevel = 3;    
   }
   
@@ -43,7 +47,7 @@ function preload() {
   
   if (! accessLevel ) {
     noLoop();
-    remove();
+    //remove();
   }
   
 }
@@ -91,7 +95,9 @@ function setup() {
   if (accessLevel < 2) {
     dialog.style('display', 'none')
   }
-
+  
+  // capture image from video camera
+  capture = createCapture(VIDEO);
   
   // create crossing
   crossing = new Crossing(300, 200, 100);
@@ -145,9 +151,22 @@ function setup() {
                               crossing.height, crossing.width );
   stopLine.road = 1;
   stopLine.addToGroup(stopLines);
+
+  pedestrianIsle = createSprite(crossing.x + crossing.width, 
+                              crossing.y + crossing.width/2 + crossing.height/2, 
+                              crossing.height, crossing.height );  
   
   //mySound.setVolume(0.7);
 
+  // create humans on pedestrian crossing
+  girl = createSprite(width-10, crossing.y+crossing.width/2, 24, 32);
+  girl.addAnimation("right", "media/girl/right-0.png", "media/girl/right-2.png");
+  girl.addAnimation("up",    "media/girl/up-0.png",    "media/girl/up-1.png",   "media/girl/up-2.png", "media/girl/up-1.png");
+  girl.addAnimation("left",  "media/girl/left-0.png",  "media/girl/left-1.png", "media/girl/left-2.png", "media/girl/left-1.png");
+  //girl.addAnimation("left",  "media/girl/left-0.png",  "media/girl/left-3.png");
+  girl.changeAnimation("left");
+  girl.velocity.x = -0.5;
+  girl.velocity.y = -0;
 }
 
 var Crossing = function(x, y, w){
@@ -202,7 +221,7 @@ CarSpawner.prototype = Object.create(Sprite.prototype);
 var Car = function (spawner) {
   Sprite.call (this, 0, height/2+10, 50, 50);
   this.depth = allSprites.maxDepth()+1;
-  this.debug = true;
+  //this.debug = true;
   this.addImage(loadImage("media/car1_spr.png"));
   this.scale = 0.5;
   
@@ -321,6 +340,19 @@ function draw() {
   }
   stroke(1);
   text(cars.length, 300, 50);
+
+  // Stop the girl at the crossing
+  
+  if (girl.overlap(pedestrianIsle)) {
+    if (!girl.turned) {
+      girl.turned = true;
+      girl.changeAnimation("up");
+      girl.velocity.x = 0;
+      girl.velocity.y = -0.5; 
+    }    
+  } else {
+    girl.turned = false;
+  }
   
   drawSprites();
 
@@ -331,7 +363,6 @@ function draw() {
       car = new Car(spawner);
     }   
   }
-
 
 }  
 
