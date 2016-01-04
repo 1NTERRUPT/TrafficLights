@@ -33,20 +33,21 @@ int lightPinsBits [][2] = {
 int nlightPins = 8;
 
 // set of light sequences (need to rename variable)
-unsigned int lightPatternsAllowed[][3] = {  // light pattern and delay how long it should stay in ms
-                                        // normal RYG sequence
-                                        {B10000110, 3000, 1},   // 0    normal RYG sequence
-                                        {B11001010, 1000, 2},   // 1
-                                        {B00110010, 3000, 3},   // 2
-                                        {B01011010, 1000, 0},   // 3    end of normal RYG sequence
-                                        // pedestrians cross the street - added to normal RYG sequence
-                                        {B10010010,  500, 5},   // 4    close both directions
-                                        {B10010001, 2000, 6},   // 5    let pedestrains in
-                                        {B10010010, 1500, 0},   // 6    again close all directions
-                                        // failed state - blinking yellow sequence
-                                        {B00000000,  200, 8},   // 7    blinking yellow sequence
-                                        {B01001000,  300, 7}    // 8
-                                     };
+unsigned int lightPatternsAllowed[][3] = {  
+    // light pattern and delay how long it should stay in ms
+    {B10000110, 4000, 1},   // 0    normal RYG sequence
+    {B11001010, 1000, 2},   // 1
+    {B00110010, 4000, 3},   // 2
+    {B01011010, 1000, 0},   // 3    end of normal RYG sequence
+    // pedestrians cross the street - added to normal RYG sequence
+    {B10010010,  500, 5},   // 4    close both directions
+    {B10010001, 3000, 6},   // 5    let pedestrains in
+    {B10010010, 1500, 0},   // 6    again close all directions
+    // failed state - blinking yellow sequence
+    {B00000000,  200, 8},   // 7    blinking yellow sequence
+    {B01001000,  300, 7}    // 8
+};
+
 // where in sequence arrays different programs are located
 # define NORMAL_RYG_BEGIN       0
 # define NORMAL_RYG_END         3
