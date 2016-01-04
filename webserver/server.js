@@ -26,8 +26,8 @@ var serialport = require('serialport'),			    // include the serialport library
 // open the serial port:
 var myPort = new SerialPort(portName, portConfig);
 
-// crypto initializaion
-var crypto = require('crypto-js');
+// crypto initializaion (perhaps in the future)
+// var crypto = require('crypto-js');
 
 
 //  set up server and socketServer listener functions:
