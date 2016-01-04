@@ -2,8 +2,9 @@
 
 ## Raspberry Pi
 1. Install [Raspbian Jessie](https://www.raspberrypi.org/downloads/raspbian/) on your Raspberry Pi
-2. Run raspi-config, install editors, set passwords and do anything else to make yourself comfortable in the system.
-3. Login as pi and while in home directory /home/pi checkout TrafficLights code
+1. Run raspi-config, install editors, set passwords and do anything else to make yourself comfortable in the system.
+1. Allow ping from non-root users ```sudo chmod u+s /bin/ping```
+1. Login as pi and while in home directory /home/pi checkout TrafficLights code
 ```
 git clone --recursive https://github.com/1NTERRUPT/TrafficLights
 ```
@@ -21,9 +22,6 @@ wget http://ftp.de.debian.org/debian/pool/main/a/arduino-mk/arduino-mk_1.5-2_all
 wget http://ftp.de.debian.org/debian/pool/main/a/arduino/arduino-core_1.0.5+dfsg2-4_all.deb
 dpkg -i arduino*.deb
 ```
-1. #### not necessary git clone --recursive https://github.com/1NTERRUPT/TrafficLights /usr/share/
-1. #### not necessary #### cd /usr/share/arduino
-1. #### not necessary #### ln -s /usr/share/TrafficLights/arduino/libraries /usr/share/arduino/
 1. Login as pi compile and upload code to arduino 
 ```
 cd ~/TrafficLights/arduino
@@ -32,7 +30,6 @@ make upload
 ``` 
 
 ## Web
-1. ### not necessary ### adduser node
 1. login as pi and install necessary nodejs modules locally
 ```
 cd ~/TrafficLights/webserver
@@ -40,9 +37,21 @@ npm install express
 npm install socket.io
 npm install serialport
 ```
-1. cd ~/TrafficLights/html/lib
-1. Download p5.js libraries (need to automate this using modules from GitHub)
-1. Allow ping from non-root users sudo chmod u+s /bin/ping
-5. ### not necessary ### cp /usr/share/TrafficLights/node-service /etc/init.d/ 
+1. Download p5.js libraries (need to automate this perhaps using modules from GitHub)
+```
+cd ~/TrafficLights/html/lib
+wget https://github.com/processing/p5.js/releases/download/0.4.20/p5.js
+wget https://github.com/processing/p5.js/releases/download/0.4.20/p5.dom.js
+wget https://github.com/processing/p5.js/releases/download/0.4.20/p5.sound.js
+wget https://raw.githubusercontent.com/molleindustria/p5.play/master/lib/p5.play.js
+
+```
+1. In separate terminal under user pi start webserver
+```
+cd ~/TrafficLights/webserver
+nodejs ./server.js /dev/ttyACM0
+```
 
 ### Credits
+1. [Icons](http://www.opensecurityarchitecture.org/cms/library/icon-library) from Open Security Architecture project 
+1. [Car images](http://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio) from SUjit Kumar Yadav by Unlucky Studio 
