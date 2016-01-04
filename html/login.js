@@ -5,16 +5,7 @@ var report;                 // result of command execution
 
 
 function setup() {
-  var stopLine;             // stopLine
   
-  createCanvas(600, 30);   // set up the canvas
-
-    /*
-  logo   = createImg('/WebServer/media/1NTERRUPT.png');
-  logo.position(width+20, 10);
-  logo.style('height', '100px');
-    */
-    
   dialog = createDiv('In case of network errors check connection <br/> from server to host: <strong>172.27.253.</strong>');
   
   input = createInput('253');
@@ -32,10 +23,7 @@ function setup() {
 
 }
 
-function draw() {
-
-}
-
+// write data to WebSocket
 function writeData () {
   data = input.value();
   var html = report.html();
@@ -45,6 +33,7 @@ function writeData () {
   
 }
 
+// read data from WebSocket
 function readData (data) {
   var html = report.html();                                 // save existing report from report div
   html  = "<li><strong>RX:<--&nbsp;</strong><tt><pre>" 
