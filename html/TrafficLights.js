@@ -203,13 +203,13 @@ var CarSpawner = function (lane, road) {
   this.lane = lane;
   this.road = road;
   this.debug = 1;
-  this.maxSpeed = this.lane + 1;    // lane 1 rund faster than lane 0
+  this.maxSpeed = 3*(this.lane + 1);    // lane 1 runs faster than lane 0
   
-  if (this.road === 0) {            // horisontal road
+  if (this.road === 0) {                // horisontal road
     this.position.x = 0;
     this.position.y = crossing.y - (this.lane - 0.5)* 2 * crossing.width/4;
     this.rotation = 0;
-  } else {                          // vertical road
+  } else {                              // vertical road
     this.position.x = crossing.x - (this.lane - 0.5)* 2 * crossing.width/4;
     this.position.y = width;
     this.rotation = -90;
@@ -222,8 +222,11 @@ var Car = function (spawner) {
   Sprite.call (this, 0, height/2+10, 50, 50);
   this.depth = allSprites.maxDepth()+1;
   //this.debug = true;
-  this.addImage(loadImage("media/car1_spr.png"));
-  this.scale = 0.5;
+  
+  var images = ["media/car.png", "media/mini_truck.png", "media/taxi.png", "media/audi.png", "media/mini_van.png"];
+  var index  = floor(random(images.length))
+  this.addImage(loadImage(images[index]));
+  this.scale = 0.25;
   
   this.lane       = spawner.lane;
   this.road       = spawner.road;
