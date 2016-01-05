@@ -65,7 +65,7 @@ function openSocket(socket){
 
 	// this function runs if there's input from the client:
 	socket.on('login', function(data) {
-    command = "ping -c1 172.27.253." + data;
+    command = "ping -c1 " + data;
     child = exec(command,
       function (error, stdout, stderr) {
         socket.emit('login', '<font color="darkgreen"> Result OK: </font>' + stdout);

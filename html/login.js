@@ -5,12 +5,13 @@ var report;                 // result of command execution
 
 
 function setup() {
+  noCanvas();				// no need for canvas here
   
-  dialog = createDiv('In case of network errors check connection <br/> from server to host: <strong>172.27.253.</strong>');
+  dialog = createDiv('In case of network errors check connection from server to any host <br/><strong>Enter IP address:</strong> ');
   
-  input = createInput('253');
+  input = createInput('127.0.0.1');
   input.parent(dialog);
-  input.style('width', '50px');
+  input.style('width', '150px');
   input.changed(writeData);
 
   button = createButton('Submit');
@@ -20,7 +21,6 @@ function setup() {
   report = createDiv('');
   report.parent(dialog);
   report.style('width', '550px');
-
 }
 
 // write data to WebSocket
