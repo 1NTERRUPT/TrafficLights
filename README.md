@@ -1,7 +1,7 @@
 # TrafficLights
 
 ## Raspberry Pi
- Install [Raspbian Jessie](https://www.raspberrypi.org/downloads/raspbian/) on your Raspberry Pi
+1. Install [Raspbian Jessie](https://www.raspberrypi.org/downloads/raspbian/) on your Raspberry Pi
 1. Login as root, as steps in this section require superuser powers ```sudo su```
 1. Run raspi-config, install editors, set passwords and do anything else to make yourself comfortable in the system.
 1. Upgrade the system to be on the safe side ```apt-get update; apt-get upgrade```
