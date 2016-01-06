@@ -289,13 +289,13 @@ void loop() {
         if (inputJson.containsKey("turnON")) {
           int lightON = inputJson["turnON"];
           int pin = lightPinsBits[lightON][0];    // pin where LED is connected
-          digitalWrite(pin, LOW);
+          digitalWrite(pin, HIGH);                // turn ON the LED
       }
                 
       if (inputJson.containsKey("turnOFF")) {
         int lightOFF = inputJson["turnOFF"];
         int pin = lightPinsBits[lightOFF][0];    // pin where LED is connected
-        digitalWrite(pin, HIGH);
+        digitalWrite(pin, LOW);                  // turn OFF the LED
       }
 
       if (inputJson.containsKey("guard")) {
