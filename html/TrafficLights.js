@@ -19,7 +19,7 @@ var urlParams               // URL params which contain name and password
 
 var capture;                // capture image from attached USB video camera
 var trafficLight=[];        // array of Lights constitute Traffic Light
-var r1, y1, g1, r2, y2, g2, rp, gp;
+var r1, y1, g1, r2, y2, g2, rp, gp = {};
 var accessLevel = 0;
 
 var girl;
@@ -152,21 +152,44 @@ function setup() {
   stopLine.road = 1;
   stopLine.addToGroup(stopLines);
 
-  pedestrianIsle = createSprite(crossing.x + crossing.width, 
+  pedestrianIsle = createSprite(crossing.x + crossing.width + 10, 
                               crossing.y + crossing.width/2 + crossing.height/2, 
-                              crossing.height, crossing.height );  
+                              crossing.height, crossing.height );
+  pedestrianIsle.button = false;    // pedestrian Isle button to cross the road is not pressed
   
   //mySound.setVolume(0.7);
 
   // create humans on pedestrian crossing
   girl = createSprite(width-10, crossing.y+crossing.width/2, 24, 32);
-  girl.addAnimation("right", "media/girl/right-0.png", "media/girl/right-2.png");
+
+  /*
+  // create girls animation using Sprite Sheets.  For some reason collisions do not work.
+  var left_frames = [
+    {"name":"left_1", "frame":{"x": 0,  "y":96, "width": 24, "height": 32}},
+    {"name":"left_2", "frame":{"x":24,  "y":96, "width": 24, "height": 32}},
+    {"name":"left_3", "frame":{"x":48,  "y":96, "width": 24, "height": 32}},
+    {"name":"left_4", "frame":{"x":24,  "y":96, "width": 24, "height": 32}}
+  ];
+  var up_frames = [
+    {"name":"up_1",   "frame":{"x":0,   "y": 0, "width": 24, "height": 32}},
+    {"name":"up_2",   "frame":{"x":24,  "y": 0, "width": 24, "height": 32}},
+    {"name":"up_3",   "frame":{"x":48,  "y": 0, "width": 24, "height": 32}},
+    {"name":"up_4",   "frame":{"x":24,  "y": 0, "width": 24, "height": 32}}
+  ];
+  girl_left_sprite_sheet = loadSpriteSheet('media/Townfolk-Adult-F-003.png', left_frames);
+  girl_up_sprite_sheet   = loadSpriteSheet('media/Townfolk-Adult-F-003.png',   up_frames);
+  girl.addAnimation("left", loadAnimation(girl_left_sprite_sheet));
+  girl.addAnimation("up",   loadAnimation(  girl_up_sprite_sheet));
+   
+  */
+
   girl.addAnimation("up",    "media/girl/up-0.png",    "media/girl/up-1.png",   "media/girl/up-2.png", "media/girl/up-1.png");
   girl.addAnimation("left",  "media/girl/left-0.png",  "media/girl/left-1.png", "media/girl/left-2.png", "media/girl/left-1.png");
-  //girl.addAnimation("left",  "media/girl/left-0.png",  "media/girl/left-3.png");
+
   girl.changeAnimation("left");
   girl.velocity.x = -0.5;
   girl.velocity.y = -0;
+  
 }
 
 var Crossing = function(x, y, w){
@@ -203,7 +226,7 @@ var CarSpawner = function (lane, road) {
   this.lane = lane;
   this.road = road;
   this.debug = 1;
-  this.maxSpeed = 3*(this.lane + 1);    // lane 1 runs faster than lane 0
+  this.maxSpeed = 2*(this.lane + 1);    // lane 1 runs faster than lane 0
   
   if (this.road === 0) {                // horisontal road
     this.position.x = 0;
@@ -224,7 +247,7 @@ var Car = function (spawner) {
   //this.debug = true;
   
   var images = ["media/car.png", "media/mini_truck.png", "media/taxi.png", "media/audi.png", "media/mini_van.png"];
-  var index  = floor(random(images.length))
+  var index  = floor(random(images.length))         // choose random image from the list
   this.addImage(loadImage(images[index]));
   this.scale = 0.25;
   
@@ -296,7 +319,20 @@ function draw() {
     light = trafficLight[i];
     light.draw();
   } 
+
+  if (girl.position.y < 10) {             // if girl reaches top of the screen hide it
+    girl.visible = false;
+  }  
   
+  if (!girl.visible && random(0, 3000) < 1) {   // create girl once in 10 seconds or so
+    girl.visible = true;
+    girl.changeAnimation("left");
+    girl.velocity.x = -0.5;
+    girl.velocity.y = -0;
+    girl.position.x = width-10, 
+    girl.position.y = crossing.y+crossing.width/2;
+  }
+
   // remove cars that left the canvas and unblock all cars
   for (i=0; i < cars.length; i++){
     car = cars[i];
@@ -310,7 +346,6 @@ function draw() {
     car = cars[i];
     if (car.overlap(stopLines, carStopLineCollision) ) {
     } else if (car.overlap(cars,carCollision)) {
-      //console.log("Car collizion inside if", car);
       
     } else { 
       if(car.road === 0){ 
@@ -345,14 +380,27 @@ function draw() {
   text(cars.length, 300, 50);
 
   // Stop the girl at the crossing
+
+  if (pedestrianIsle.button) {
+    pedestrianIsle.shapeColor = "green";  
+  } else {
+    pedestrianIsle.shapeColor = "red";
+  }
   
   if (girl.overlap(pedestrianIsle)) {
     if (!girl.turned) {
       girl.turned = true;
       girl.changeAnimation("up");
       girl.velocity.x = 0;
-      girl.velocity.y = -0.5; 
-    }    
+      girl.velocity.y = 0;
+      socket.emit('message', '{"button":1}');   // request green light for pedestrians
+      pedestrianIsle.button = true;
+    }
+    
+    if (girl.turned && gp.state) {              // if girl turned towards the road and see green light for pedestrains
+      girl.velocity.x = 0;
+      girl.velocity.y = -0.7;
+    }
   } else {
     girl.turned = false;
   }
@@ -376,9 +424,6 @@ function draw() {
 *
 */                          
 function carCollision(car1, car2) {
-
-  //console.log("Collision car1=",car1);
-  //console.log("Collision car2=",car2);
   
   if (car1.road == 0 && car1.position.x < car2.position.x 
       && abs(car2.position.y-car1.position.y)<(car1.height/2+car2.width/2)*car1.scale )  {
@@ -426,6 +471,9 @@ function carStopLineCollision(car, stopLine) {
   }
 }
 
+/*
+ * Write data to Arduino through Serial port
+ */
 function writeData () {
   data = input.value();
   var html = report.html();
@@ -435,6 +483,9 @@ function writeData () {
   
 }
 
+/*
+ * Read data from Arduino through Serial port
+ */
 function readData (data) {
   var FLAG_GP = 0x01; // 0000 0001
   var FLAG_RP = 0x02; // 0000 0010
@@ -451,6 +502,9 @@ function readData (data) {
 
   try {
     var obj = JSON.parse(data);
+    rp.prev  = rp.state;
+    gp.prev  = gp.state;
+    
     r1.state = obj.pattern & FLAG_R1;
     y1.state = obj.pattern & FLAG_Y1;
     g1.state = obj.pattern & FLAG_G1;
@@ -459,6 +513,10 @@ function readData (data) {
     g2.state = obj.pattern & FLAG_G2;
     rp.state = obj.pattern & FLAG_RP;
     gp.state = obj.pattern & FLAG_GP;
+    
+    if (gp.prev && rp.state) {                                // if pedestrian light turned from green to red
+      pedestrianIsle.button = false;                          // release pedestrian button
+    }
   } catch(err) {
     //console.log("BAD!!!");
   }

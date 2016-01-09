@@ -298,6 +298,14 @@ void loop() {
         digitalWrite(pin, LOW);                  // turn OFF the LED
       }
 
+      if (inputJson.containsKey("button")) {
+        if (inputJson["button"]) {
+          pressed = true;
+        } else {
+          pressed = false;
+        }        
+      }
+
       if (inputJson.containsKey("guard")) {
         if (accessLevel == 3) {
           guardEnabled = inputJson["guard"];
