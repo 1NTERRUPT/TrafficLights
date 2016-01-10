@@ -55,6 +55,13 @@ function openSocket(socket){
 	console.log('new user address: ' + socket.handshake.address);
 	// send something to the web client with the data:
 	socket.emit('message', 'Hello, ' + socket.handshake.address);
+	socket.emit('message', '<strong> Command syntax </strong> \n' +
+                '<br/> {turnON:1, turnOFF:3} - turn On Light 1, and turn Off Light 3 \n' +
+                '<br/> {guard:1} - Enable  Malfunction Management Unit \n' +
+                '<br/> {guard:0} - Disable Malfunction Management Unit \n' +
+                '<br/> {reset:1} - reset Traffic Light if it enteres Malfunction State (yellow blinking) \n' +
+                '<br/> {button:1} - request Pedestrain Crossing'
+                );
 
 	// this function runs if there's input from the client:
 	socket.on('message', function(data) {
