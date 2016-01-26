@@ -36,9 +36,9 @@ int nlightPins = 8;
 unsigned int lightPatternsAllowed[][3] = {  
     // light pattern and delay how long it should stay in ms
     {B10000110, 4000, 1},   // 0    normal RYG sequence
-    {B11001010, 1000, 2},   // 1
+    {B01001010, 1000, 2},   // 1
     {B00110010, 4000, 3},   // 2
-    {B01011010, 1000, 0},   // 3    end of normal RYG sequence
+    {B01001010, 1000, 0},   // 3    end of normal RYG sequence
     // pedestrians cross the street - added to normal RYG sequence
     {B10010010,  500, 5},   // 4    close both directions
     {B10010001, 3000, 6},   // 5    let pedestrains in
@@ -67,7 +67,7 @@ boolean pedestrianRequest = false;  // pedestrians request crossing the road
 boolean pedestrianCrossed = false;  // pedestrinas crossed the road
 boolean guardEnabled = true;        // enable MMU guard check of trafic light system
 long nguard = 0;
-int accessLevel = 0;                  // user permissions level
+int accessLevel = 0;                // user permissions level
 
 /*
 ISR routine to process button pressed
@@ -319,10 +319,10 @@ void loop() {
         int password = inputJson["password"];
         if (password == 7) {
             accessLevel = 3;
-            Serial.println("SysAdmin priveleges GRANTED");
+            Serial.println("Login success. SysAdmin priveleges GRANTED.");
         } else {
             accessLevel = 0;
-            Serial.println("WRONG PASSWORD, Restrictions apply");
+            Serial.println("Login failure. Wrong password.");
         }
         
       }          
