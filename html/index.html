@@ -10,31 +10,37 @@
   <body>
     <img style="height:200px" src="media/1NTERRUPT.png"/>
 
-    <p style="font-size:18pt">To enter Traffic Lights Monitor <br/>Please select role and enter password</p>
+    <p style="font-size:16pt">To enter Traffic Lights Monitor <br/>Please select role and enter password</p>
 
     <form method="get" action="/TrafficLights.html">
       <div style="float:left">
         <img src="media/worker.png"/>
         <br/><input type="radio" name="username" value="worker" checked/> 
-        <strong>Worker</strong>
+        <strong>worker</strong>
       </div>
       
       <div style="float:left">
         <img src="media/operator.png"/>
         <br/><input type="radio" name="username" value="operator"/>
-        <strong>Operator</strong>
+        <strong>operator</strong>
       </div>
       
       <div>
         <img src="media/sysadmin.png"/>
         <br/><input type="radio" name="username" value="sysadmin"/>
-        <strong>SysAdmin</strong>
+        <strong>sysadmin</strong>
       </div>
       
       <br/>Password:
       <input type="password" name="password"/>
       <input type="submit"/>
     </form>
+    
+    <ul>
+        <li> <strong>worker</strong> - can monitor Traffic Lights in read-only mode.  Can not send commands to Traffic Lights controller.
+        <li> <strong>operator</strong> - can operate Traffic Lights in read-write mode.  Can send most commands to Traffic Lights controller.  But some commands are forbidden.
+        <li><strong>sysadmin</strong> - complete control over Traffic Lights controller.
+    </ul>
     
   </body>
 </html>
