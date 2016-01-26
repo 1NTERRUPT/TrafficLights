@@ -87,6 +87,7 @@ function openSocket(socket){
 
 	// this function runs if there's input from the serialport:
 	myPort.on('data', function(data) {
+	    console.log('Got message from Serial port:', data);
 		socket.emit('message', data);		        // send the data to the client
 	});
 }
