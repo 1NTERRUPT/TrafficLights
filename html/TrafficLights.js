@@ -15,6 +15,7 @@ var go2login;               // goto login interface
 var input;
 var report;
 var greeting;
+var verifyPassword;
 var urlParams               // URL params which contain name and password
 
 var capture;                // capture image from attached USB video camera
@@ -32,7 +33,7 @@ function preload() {
   var password = urlParams.password;                // get password from request
   var hash     = CryptoJS.MD5(password).toString(); // calculate md5 hash of password
   
-  if (username === 'worker' && password === '134565') {
+  if (username === 'worker' && password === '1234') {
     accessLevel = 1;
   } else if (username === 'operator' && hash === '1364cba01e0ee80ef4381175bd6cf0d3') {
     accessLevel = 2;
@@ -40,7 +41,7 @@ function preload() {
     var data = '{"username":'+username+', "password":'+password+'}';
     console.log('Transmit', data);
     socket.emit('message', data);                   // send password to Arduino controller
-    accessLevel = 3;    
+    accessLevel = -1;    
   }
   
   console.log('User level=', accessLevel);
@@ -66,19 +67,27 @@ function setup() {
   
   greeting = createDiv();
   greeting.parent(heading);
-  var html = 'Welcome <strong>'+urlParams.username+'</strong>';
-  // html += md5('bebe');
-  if (accessLevel === 1) {
-    html += ", Monitoring only.  No I/O with controller allowed";
-  } else if (accessLevel === 2) {
-    html += ", Communication with controller is allowed.  Some restrictions apply";
-  }
+  var html = 'Welcome <strong>'+urlParams.username+'. </strong>';
   greeting.html(html);
-  
+  // html += md5('bebe');
 
+  verifyPassword = createDiv();
+  verifyPassword.parent(heading);
+  if (accessLevel === 1) {
+    html = "Monitoring only.  No I/O with controller allowed";
+  } else if (accessLevel === 2) {
+    html = "Communication with controller is allowed.  But some restrictions apply";
+  } else if (accessLevel === 3) {
+    html = "Complete control over controller is allowed.";
+  } else if (accessLevel === -1) {
+    html = "Verifying password on controller.";
+  } else {
+    html = "Wrong password, no access allowed"
+  }
+  verifyPassword.html(html);
   
   dialog = createDiv('');
-  dialog.position(width+20, 130);
+  dialog.parent(heading);
 
   input = createInput();
   input.parent(dialog);
@@ -97,7 +106,7 @@ function setup() {
   }
   
   // capture image from video camera
-  capture = createCapture(VIDEO);
+  // capture = createCapture(VIDEO);
   
   // create crossing
   crossing = new Crossing(300, 200, 100);
@@ -144,12 +153,14 @@ function setup() {
                               crossing.y + crossing.width/2 + crossing.height/2, 
                               crossing.width, crossing.height );
   stopLine.road = 0;
+  stopLine.shapeColor = color(200,200,200);
   stopLine.addToGroup(stopLines);
 
   var stopLine = createSprite(crossing.x - crossing.width/2 - crossing.height/2, 
                               crossing.y, 
                               crossing.height, crossing.width );
   stopLine.road = 1;
+  stopLine.shapeColor = color(200,200,200);
   stopLine.addToGroup(stopLines);
 
   pedestrianIsle = createSprite(crossing.x + crossing.width + 10, 
@@ -161,27 +172,6 @@ function setup() {
 
   // create humans on pedestrian crossing
   girl = createSprite(width-10, crossing.y+crossing.width/2, 24, 32);
-
-  /*
-  // create girls animation using Sprite Sheets.  For some reason collisions do not work.
-  var left_frames = [
-    {"name":"left_1", "frame":{"x": 0,  "y":96, "width": 24, "height": 32}},
-    {"name":"left_2", "frame":{"x":24,  "y":96, "width": 24, "height": 32}},
-    {"name":"left_3", "frame":{"x":48,  "y":96, "width": 24, "height": 32}},
-    {"name":"left_4", "frame":{"x":24,  "y":96, "width": 24, "height": 32}}
-  ];
-  var up_frames = [
-    {"name":"up_1",   "frame":{"x":0,   "y": 0, "width": 24, "height": 32}},
-    {"name":"up_2",   "frame":{"x":24,  "y": 0, "width": 24, "height": 32}},
-    {"name":"up_3",   "frame":{"x":48,  "y": 0, "width": 24, "height": 32}},
-    {"name":"up_4",   "frame":{"x":24,  "y": 0, "width": 24, "height": 32}}
-  ];
-  girl_left_sprite_sheet = loadSpriteSheet('media/Townfolk-Adult-F-003.png', left_frames);
-  girl_up_sprite_sheet   = loadSpriteSheet('media/Townfolk-Adult-F-003.png',   up_frames);
-  girl.addAnimation("left", loadAnimation(girl_left_sprite_sheet));
-  girl.addAnimation("up",   loadAnimation(  girl_up_sprite_sheet));
-   
-  */
 
   girl.addAnimation("up",    "media/girl/up-0.png",    "media/girl/up-1.png",   "media/girl/up-2.png", "media/girl/up-1.png");
   girl.addAnimation("left",  "media/girl/left-0.png",  "media/girl/left-1.png", "media/girl/left-2.png", "media/girl/left-1.png");
@@ -221,11 +211,11 @@ var Crossing = function(x, y, w){
 var CarSpawner = function (lane, road) {
   Sprite.call (this, 0, 0, 80, 30);
   this.depth = allSprites.maxDepth()+1;
+  this.shapeColor = color(150,150,150);
   allSprites.add(this);
 
   this.lane = lane;
   this.road = road;
-  this.debug = 1;
   this.maxSpeed = 2*(this.lane + 1);    // lane 1 runs faster than lane 0
   
   if (this.road === 0) {                // horisontal road
@@ -305,7 +295,9 @@ var Light = function (x, y, colorOn, bit) {
   }
 }
 
-
+/**
+ * Draw canvas, this function is called 60 times a second
+ */
 function draw() {
   var i;                                  // loop variable
   var spawner;                            // car spawner
@@ -314,6 +306,8 @@ function draw() {
   background(255);                        // make the screen white
   crossing.draw();                        // draw road crossing
 
+  if (accessLevel <= 0) return;           // do not draw anything to strangers
+  
   // Draw all Traffic Lights
   for (i = 0; i < trafficLight.length; i++) {
     light = trafficLight[i];
@@ -419,10 +413,8 @@ function draw() {
 
 
 /**
-*
-* Collision function between Cars
-*
-*/                          
+ * Collision function between Cars
+ */                          
 function carCollision(car1, car2) {
   
   if (car1.road == 0 && car1.position.x < car2.position.x 
@@ -442,10 +434,8 @@ function carCollision(car1, car2) {
 }
 
 /**
-*
-* Collision function between Car and Stop Line
-*
-*/                          
+ * Collision function between Car and Stop Line
+ */                          
 function carStopLineCollision(car, stopLine) {
     
   // cars on horizontal road hit traffic light Stop Line
@@ -471,7 +461,7 @@ function carStopLineCollision(car, stopLine) {
   }
 }
 
-/*
+/**
  * Write data to Arduino through Serial port
  */
 function writeData () {
@@ -483,7 +473,7 @@ function writeData () {
   
 }
 
-/*
+/**
  * Read data from Arduino through Serial port
  */
 function readData (data) {
@@ -518,7 +508,16 @@ function readData (data) {
       pedestrianIsle.button = false;                          // release pedestrian button
     }
   } catch(err) {
-    //console.log("BAD!!!");
+    console.log("Not JSON:", data);
+    if (data.indexOf("Login success") > -1) {
+        accessLevel = 3;
+        console.log("Login success");
+        verifyPassword.html("Complete control over controller is allowed.");
+    } else if (data.indexOf("Login failure") > -1) {
+        accessLevel = 0;
+        console.log("Login failure");
+        verifyPassword.html("Wrong password, no access allowed");
+    }
   }
 }
 
