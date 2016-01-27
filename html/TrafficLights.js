@@ -306,8 +306,14 @@ function draw() {
   background(255);                        // make the screen white
   crossing.draw();                        // draw road crossing
 
-  if (accessLevel <= 0) return;           // do not draw anything to strangers
-  
+  if (accessLevel <= 0) {                 // do not draw anything to strangers
+    return;
+  } else if (accessLevel < 2) {
+    dialog.style('display', 'none');
+  } else {
+    dialog.style('display', 'block');
+  }
+
   // Draw all Traffic Lights
   for (i = 0; i < trafficLight.length; i++) {
     light = trafficLight[i];
