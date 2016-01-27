@@ -1,0 +1,166 @@
+<html>
+  <head>
+    <title>1NTERRUPT</title>
+    <script src="/socket.io/socket.io.js" type="text/javascript"></script>
+    <script src="/lib/p5.js"              type="text/javascript"></script> 
+    <script src="/lib/p5.dom.js"          type="text/javascript"></script>
+  </head>
+
+  <body>
+    <img style="height:200px" src="media/1NTERRUPT.png"/>
+
+    <h1>Traffic Lights</h1>
+
+    <h2>Componets of Traffic Lights System</h2>
+    
+    <p>
+        In the heart of Traffic Light system is Arduino microcontroller that sends signals to lights according to internal program. To protect Traffic Lights from hardware or software failures there is a special module called MMU (Malfunction Management Unit) that prevents situations with 2 simultaneous green lihgts.  In this particular case MMU is realized as a software function, in real Traffic Lights it is usually and independent hardware module.
+    </p>
+    <p>
+        Modern Traffic Lights have to communicate between each other, as well as with some Traffic Control Center.  This way you can adjust traffic light sequences according to the current situation with traffic.  In this case Arduino controller communicates with small web server, which runs on Raspberry Pi.  The data between RPi and Arduino goes over serial port.  
+    </p>
+    <p>
+        Connection to Web server is done over ordinary TCP/IP network.  In this case data is send over modern WebSockets protocol, which unites comfort of ordinary HTTP protocol with real time capabilities of asyncronous communications.  Unlike ordinary HTTP you do not have to constantly reload webpage to find new information, instead small data packets with information about Traffic Lights state come from server to client asyncronously.
+    </p>
+    <img style="width:720px" src="media/TL-scheme.png"/>
+   <p> Lately it is quite usual to send information using so called JSON format.  This format is almost self-explanatory. We use this format to communicate with Arduino controller.  
+    <pre><tt>
+        {button:1}                          - to send a signal that button was pressed
+        {username:operator, password:guess} - to send name and password to controller
+    </tt></pre>
+   </p>
+
+    <h2> Internals of Arduino Controller program </h2> 
+    <p>
+        Traffic Light from programming point of view is almost an ideal State Machine.  There are several states between which Traffic Lights switches while it operates.  Let us consider Traffic lights system in very simple case of 2 one-way crossing.
+    </p>   
+        <img style="border-style:solid; border-width:1px" src="media/TL-lights.png"/>
+        <p>
+        <table cellspacing=0 cellpadding=2 border=1>
+            <tr>
+                <th> No.</th>
+                <th colspan=8> Lights </th>
+                <th> Binary form</th>
+                <th> Decimal </th>
+                <th> Delay(ms) </th>
+                <th> Next state </th>
+                <th> Actions </th>
+            </tr>
+            <tr>
+                <td> 0</td>
+                <td style="background-color:red">R1</td>
+                <td>Y1</td>
+                <td>G1</td>
+                <td>R2</td>
+                <td>Y2</td>
+                <td style="background-color:green">G2</td>
+                <td style="background-color:red">RP</td>
+                <td>GP</td>
+                <td>10000110</td>
+                <td>134</td>
+                <td>4000</td>
+                <td>2</td>
+                <td>Road 1 is closed, Road 2 is opened. Pedestrains stay.</td>
+            </tr>
+            <tr>
+                <td> 1</td>
+                <td>R1</td>
+                <td style="background-color:yellow">Y1</td>
+                <td>G1</td>
+                <td>R2</td>
+                <td style="background-color:yellow">Y2</td>
+                <td>G2</td>
+                <td style="background-color:red">RP</td>
+                <td>GP</td>
+                <td>01001010</td>
+                <td>74</td>
+                <td>1000</td>
+                <td>3</td>
+                <td>Road 1 is closed, Road 2 is closed. Warning. Pedestrains stay.</td>
+            </tr>
+            <tr>
+                <td> 2</td>
+                <td>R1</td>
+                <td>Y1</td>
+                <td style="background-color:red">G1</td>
+                <td style="background-color:green">R2</td>
+                <td>Y2</td>
+                <td>G2</td>
+                <td style="background-color:red"">RP</td>
+                <td>GP</td>
+                <td>00110010</td>
+                <td>50</td>
+                <td>4000</td>
+                <td> 4</td>
+                <td>Road 1 is opened, Road 2 is closed, pedestrains stay.</td>
+            </tr>
+            <tr>
+                <td> 3</td>
+                <td>R1</td>
+                <td style="background-color:yellow">Y1</td>
+                <td>G1</td>
+                <td>R2</td>
+                <td style="background-color:yellow">Y2</td>
+                <td>G2</td>
+                <td style="background-color:red">RP</td>
+                <td>GP</td>
+                <td>01001010</td>
+                <td>74</td>
+                <td>1000</td>
+                <td>0 or 4(button)</td>
+                <td>Road are closed.  Check button for pedestrains</td>
+            </tr>
+            <tr>
+                <td> 4</td>
+                <td style="background-color:red">R1</td>
+                <td >Y1</td>
+                <td>G1</td>
+                <td style="background-color:red">R2</td>
+                <td >Y2</td>
+                <td>G2</td>
+                <td style="background-color:red">RP</td>
+                <td>GP</td>
+                <td>10010010</td>
+                <td>146</td>
+                <td>500</td>
+                <td>5</td>
+                <td>Close both roads</td>
+            </tr>
+            <tr>
+                <td> 5</td>
+                <td style="background-color:red">R1</td>
+                <td >Y1</td>
+                <td>G1</td>
+                <td style="background-color:red">R2</td>
+                <td >Y2</td>
+                <td>G2</td>
+                <td>RP</td>
+                <td style="background-color:green">GP</td>
+                <td>10010001</td>
+                <td>145</td>
+                <td>3000</td>
+                <td>6</td>
+                <td>Close both roads.  Let pedestrains in.</td>
+            </tr>
+            <tr>
+                <td> 6</td>
+                <td style="background-color:red">R1</td>
+                <td >Y1</td>
+                <td>G1</td>
+                <td style="background-color:red">R2</td>
+                <td >Y2</td>
+                <td>G2</td>
+                <td style="background-color:red">RP</td>
+                <td>GP</td>
+                <td>10010010</td>
+                <td>146</td>
+                <td>1500</td>
+                <td>0</td>
+                <td>Close both roads.  Give some time for pedestrains to walk away</td>
+            </tr>
+            
+            
+        </table>
+        </p> 
+  </body>
+</html>
