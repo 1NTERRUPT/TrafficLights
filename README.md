@@ -72,6 +72,12 @@ cd ~/TrafficLights/webserver
 screen nodejs ./server.js /dev/ttyACM0
 ... Then press Ctrl-A D to detach from process ...
 ``` 
+1. There can be errors when you upload code to arduino like:
+```
+avrdude: stk500_getsync() attempt 1 of 10: not in sync:
+```
+Just try it one more time
+1. 
 ### Credits
 1. [Icons](http://www.opensecurityarchitecture.org/cms/library/icon-library) from Open Security Architecture project 
 1. [Car images](http://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio) from SUjit Kumar Yadav by Unlucky Studio 

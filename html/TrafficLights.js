@@ -21,6 +21,7 @@ var urlParams               // URL params which contain name and password
 var capture;                // capture image from attached USB video camera
 var trafficLight=[];        // array of Lights constitute Traffic Light
 var r1, y1, g1, r2, y2, g2, rp, gp = {};
+var arduinoJSON = {};       // parsed JSON from Arduino
 var accessLevel = 0;
 
 var girl;
@@ -101,6 +102,7 @@ function setup() {
   report = createDiv('');
   report.parent(dialog);
   report.style('width', '550px');
+  report.style('font-family', 'monospace');
   if (accessLevel < 2) {
     dialog.style('display', 'none')
   }
@@ -409,6 +411,9 @@ function draw() {
   
   drawSprites();
 
+  // plot some information about Traffic Light state
+  // text(arduinoJSON.pattern.toString(), 300,300);
+
   // Try to spawn more cars from all CarSpawners;
   for (i=0; i < spawners.length; i++){
     spawner = spawners[i];
@@ -499,23 +504,23 @@ function readData (data) {
   report.html(html);                                        // put back in report div
 
   try {
-    var obj = JSON.parse(data);
+    arduinoJSON  = JSON.parse(data);
     rp.prev  = rp.state;
     gp.prev  = gp.state;
     
-    r1.state = obj.pattern & FLAG_R1;
-    y1.state = obj.pattern & FLAG_Y1;
-    g1.state = obj.pattern & FLAG_G1;
-    r2.state = obj.pattern & FLAG_R2;
-    y2.state = obj.pattern & FLAG_Y2;
-    g2.state = obj.pattern & FLAG_G2;
-    rp.state = obj.pattern & FLAG_RP;
-    gp.state = obj.pattern & FLAG_GP;
+    r1.state = arduinoJSON.pattern & FLAG_R1;
+    y1.state = arduinoJSON.pattern & FLAG_Y1;
+    g1.state = arduinoJSON.pattern & FLAG_G1;
+    r2.state = arduinoJSON.pattern & FLAG_R2;
+    y2.state = arduinoJSON.pattern & FLAG_Y2;
+    g2.state = arduinoJSON.pattern & FLAG_G2;
+    rp.state = arduinoJSON.pattern & FLAG_RP;
+    gp.state = arduinoJSON.pattern & FLAG_GP;
     
     if (gp.prev && rp.state) {                                // if pedestrian light turned from green to red
       pedestrianIsle.button = false;                          // release pedestrian button
     }
-  } catch(err) {
+  } catch(err) {                                              // if it is not JSON format and parsing fails
     console.log("Not JSON:", data);
     if (data.indexOf("Login success") > -1) {
         accessLevel = 3;

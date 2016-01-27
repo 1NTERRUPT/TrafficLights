@@ -40,7 +40,7 @@ int lightPinsBits [][2] = {
 int nlightPins = 8;
 
 // set of light sequences (need to rename variable)
-unsigned int lightPatternsAllowed[][3] = {  
+unsigned int lightPatternsAll[][3] = {  
     // light pattern and delay how long it should stay in ms
     {B10000110, 4000, 1},   // 0    normal RYG sequence
     {B01001010, 1000, 2},   // 1
@@ -54,6 +54,7 @@ unsigned int lightPatternsAllowed[][3] = {
     {B00000000,  200, 8},   // 7    blinking yellow sequence
     {B01001000,  300, 7}    // 8
 };
+int nlightPatternsAll = sizeof(lightPatternsAll)/sizeof(unsigned int)/3;
 
 // where in sequence arrays different programs are located
 # define NORMAL_RYG_BEGIN       0
@@ -108,17 +109,17 @@ void serialEvent() {
   
 }
 
-/*
-Malfunction Management Unit
-
-Checks that apparatus is working correctly and LED voltages correspond to current 
-state of Traffic Light.  
-
-If the current state pattern differs from what one could expect it switches apparatus to
-emergency state with flashing Yellow light.
-
-Processing of this check takes less than 0.1ms
-*/
+/**
+ * Malfunction Management Unit
+ *
+ * Checks that apparatus is working correctly and LED voltages correspond to current 
+ * state of Traffic Light.  
+ * 
+ * If the current state pattern differs from what one could expect it switches apparatus to
+ * emergency state with flashing Yellow light.
+ *
+ * Processing of this check takes less than 0.1ms
+ */
 boolean guard(int state) {
   // read LEDs voltages and verify corresponding bit pattern
   unsigned int lightPattern = 0;
@@ -127,15 +128,15 @@ boolean guard(int state) {
     int bit   = lightPinsBits[i][1];          // bit in corresponding pattern
     int value;                                // value of light state 1=ON, 0=OFF
     if (POLARITY == 1) {                      // normal polarity
-      value = digitalRead(pin);           // check the state of light ON/OFF
+      value = digitalRead(pin);               // check the state of light ON/OFF
     } else {                                  // reverse polarity
-      value = 1 - digitalRead(pin);       // check the state of light ON/OFF
+      value = 1 - digitalRead(pin);           // check the state of light ON/OFF
     }
     bitWrite(lightPattern, bit, value);       // write bit in the pattern
   }
         
   boolean emergency = true;
-  if (lightPatternsAllowed[state][0] == lightPattern) {
+  if (lightPatternsAll[state][0] == lightPattern) {
     emergency = false;
   }
   nguard++;
@@ -150,8 +151,8 @@ boolean guard(int state) {
  * helper function that turns lights ON/OFF for a particular sequence number "state"
  */
 void lights(int state) {
-  unsigned int  pattern = lightPatternsAllowed[state][0];
-  unsigned long delay   = lightPatternsAllowed[state][1];
+  unsigned int  pattern = lightPatternsAll[state][0];
+  unsigned long delay   = lightPatternsAll[state][1];
   // Setup JSON communication
   StaticJsonBuffer<100> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
@@ -214,31 +215,29 @@ void readLights() {
 
 
 /**
- * Mandatory Arduino initialization stage
+ * Mandatory Arduino initialization stage.  It runs once.
  */
 void setup() {
-    // Initialize pins attached to lights LEDs
-    for (int i=0; i < nlightPins; i++) {      // for each LED available
-        int pin   = lightPinsBits[i][0];    // pin where LED is connected
-        pinMode(pin, OUTPUT);               // set output mode
-    }
-    lights(NORMAL_RYG_BEGIN);               // set Traffic Light in initial condition
+  // Initialize pins attached to lights LEDs
+  for (int i=0; i < nlightPins; i++) {      // for each LED available
+    int pin   = lightPinsBits[i][0];        // pin where LED is connected
+    pinMode(pin, OUTPUT);                   // set output mode
+  }
+  lights(NORMAL_RYG_BEGIN);                 // set Traffic Light in initial condition
 
-    pinMode(2, INPUT);                      // button is attached to pin2
-    digitalWrite(2,HIGH);                   // attach pull-up resistor
-    attachInterrupt(0, button, FALLING);    // set ISR to process button press events
+  pinMode(2, INPUT);                        // button is attached to pin2
+  digitalWrite(2,HIGH);                     // attach pull-up resistor
+  attachInterrupt(0, button, FALLING);      // set ISR to process button press events
     
-    // use timerIsr to process timer interrupts
-    Timer1.attachInterrupt( timerIsr );     // set ISR to process timer events
+  // use timerIsr to process timer interrupts
+  Timer1.attachInterrupt( timerIsr );       // set ISR to process timer events
     
-    // reserve enough room for Serial commands
-    inputString.reserve(200);
+  // reserve enough room for Serial commands
+  inputString.reserve(200);
     
-    // start Serial communication
-    Serial.begin(115200);                     // set up Serial library at 115200 bps
-    Serial.println("--------------- Serial Start ------------------");    
-
-
+  // start Serial communication
+  Serial.begin(115200);                     // set up Serial library at 115200 bps
+  Serial.println("--------------- Serial Start ------------------");    
 }
 
 /**
@@ -256,78 +255,77 @@ void loop() {
     delay(100);                     // take jitter out (push-button electronics effect)
     // change sequence to let pedestrians in
     Serial.println("Button pressed: Let pedestrians in");
-    lightPatternsAllowed[NORMAL_RYG_END][2] = PEDESTRIANS_BEGIN; // attach pedestrian crossing to main RYG sequence
+    lightPatternsAll[NORMAL_RYG_END][2] = PEDESTRIANS_BEGIN; // attach pedestrian crossing to main RYG sequence
   }
 
   /* Timer is UP, switch the traffic lights */
   if (timerUp) {
     timerUp = false;
-    /*
-        Serial.print("Timer: stateTL=");
-        Serial.print(stateTL);
-        Serial.print(" pedestrianRequest =");
-        Serial.print(pedestrianRequest);
-        Serial.print(" pedestrianCrossed =");
-        Serial.print(pedestrianCrossed);
-    */
-        
 
-    if (stateTL == PEDESTRIANS_END && !pedestrianRequest) {     // Pedestrians Crossed
-                                                                    // and no one pressed the button again
-      pedestrianCrossed = true;                               // Reset the flag
-      lightPatternsAllowed [NORMAL_RYG_END][2] = NORMAL_RYG_BEGIN;    // switch back to normal RYG sequence
+    if (stateTL == PEDESTRIANS_END && !pedestrianRequest) {       // Pedestrians Crossed
+                                                                  // and no one pressed the button again
+      pedestrianCrossed = true;                                   // Reset the flag
+      lightPatternsAll [NORMAL_RYG_END][2] = NORMAL_RYG_BEGIN;    // switch back to normal RYG sequence
     }     
     // read next state from sequence
-      stateTL = lightPatternsAllowed[stateTL][2];
-      lights (stateTL);
-      if (stateTL == PEDESTRIANS_BEGIN) {                         // Traffic light switched to Pedestrian sequence
-          pedestrianRequest = false;                              // clear the Pedestrian request flag
-      }     
+    stateTL = lightPatternsAll[stateTL][2];
+    lights (stateTL);
+    if (stateTL == PEDESTRIANS_BEGIN) {                           // Traffic light switched to Pedestrian sequence
+      pedestrianRequest = false;                                  // clear the Pedestrian request flag
+    }     
 
-    }
+  }
 
 /**
  * Check data from serial port and parse information
  */
-    serialEvent(); 
-    if (stringComplete) {
-      //Serial.print("Arduino got message: ");
-      //Serial.println(inputString);
+  serialEvent(); 
+  if (stringComplete) {
+    // Setup JSON communication
+    StaticJsonBuffer<100> jsonBuffer1;
+    JsonObject& inputJson = jsonBuffer1.parseObject(inputString);
 
-      // Setup JSON communication
-      StaticJsonBuffer<100> jsonBuffer1;
-      JsonObject& inputJson = jsonBuffer1.parseObject(inputString);
-
-      if (!inputJson.success()) {
-        Serial.print("Arduino: parseObject() failed. inputString = ");
-        Serial.println(inputString);
-      } else {
-            
+    if (!inputJson.success()) {
+      Serial.print("Arduino: parseObject() failed. inputString = ");
+      Serial.println(inputString);
+    
+    } else {
+                
       if (inputJson.containsKey("turnON")) {
-          int lightON = inputJson["turnON"];
-          int pin = lightPinsBits[lightON][0];    // pin where LED is connected
-          if (POLARITY == 1) {                    
-            digitalWrite(pin, HIGH);              // turn the LED ON normal polarity
-          } else {
-            digitalWrite(pin, LOW);               // turn the LED ON reverse polarity
+        int lightON = inputJson["turnON"];        // bit corresponding to light
+        for (int i=0; i < nlightPins; i++) {      // for each LED available
+          int pin   = lightPinsBits[i][0];        // pin where LED is connected
+          int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
+          if (bit == lightON) {
+            if (POLARITY == 1) {                    
+              digitalWrite(pin, HIGH);            // turn the LED ON normal polarity
+            } else {
+              digitalWrite(pin, LOW);             // turn the LED ON reverse polarity
+            }
           }
+        }
       }
                 
       if (inputJson.containsKey("turnOFF")) {
         int lightOFF = inputJson["turnOFF"];
-        int pin = lightPinsBits[lightOFF][0];    // pin where LED is connected
-        if (POLARITY == 1) {                    
-          digitalWrite(pin, LOW);                // turn the LED OFF normal polarity
-        } else {
-          digitalWrite(pin, HIGH);               // turn the LED OFF reverse polarity
+        for (int i=0; i < nlightPins; i++) {      // for each LED available
+          int pin   = lightPinsBits[i][0];        // pin where LED is connected
+          int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
+          if (bit == lightOFF) {
+            if (POLARITY == 1) {                    
+              digitalWrite(pin, LOW);                // turn the LED OFF normal polarity
+            } else {
+              digitalWrite(pin, HIGH);               // turn the LED OFF reverse polarity
+            }
+          }
         }
-       }
+      }
 
       if (inputJson.containsKey("button")) {
         if (inputJson["button"]) {
           pressed = true;
         } else {
-          pressed = false;
+          pressed = false;  
         }        
       }
 
@@ -352,6 +350,55 @@ void loop() {
         
       }          
 
+      // print available information
+      if (inputJson.containsKey("info") && inputJson["info"] > 0) {
+        Serial.print("Your accessLevel = ");
+        Serial.println(accessLevel);
+        Serial.print("MMU state is = ");
+        Serial.println(guardEnabled);
+        Serial.println("Program in Controller:");
+        for (int i=nlightPatternsAll-1; i>=0; i--) {         // for each lightPattern
+          unsigned int lightPattern = lightPatternsAll[i][0];
+          unsigned int        delay = lightPatternsAll[i][1];
+          unsigned int    nextState = lightPatternsAll[i][2];
+          Serial.print("state = ");
+          Serial.print(i);
+          Serial.print(" delay = ");
+          Serial.print(delay);
+          Serial.print(" pattern = ");
+          Serial.print(lightPattern);
+          Serial.print(" nextState = ");
+          Serial.println(nextState);
+        }  
+      }
+
+      if (inputJson.containsKey("set")    && 
+                  inputJson["set"] > 0    && 
+          inputJson.containsKey("state")  && 
+          inputJson.containsKey("delay")     ) {
+        int state = inputJson["state"];
+        int delay = inputJson["delay"];
+        if (state >= 0 && state < nlightPatternsAll) {
+          lightPatternsAll[state][1] = delay;
+        }
+      }
+
+      if (inputJson.containsKey("set")    && 
+                  inputJson["set"] > 0    && 
+          inputJson.containsKey("state")  && 
+          inputJson.containsKey("pattern")   ) {
+          
+        if (accessLevel >= 3){
+          int state   = inputJson["state"];
+          int pattern = inputJson["pattern"];
+          if (state >= 0 && state < nlightPatternsAll) {
+            lightPatternsAll[state][0] = pattern;
+          }
+        } else {
+          Serial.println("Light pattern can be changed only by sysadmin");
+        }
+      }
+
       if (failedState && inputJson.containsKey("reset") && inputJson["reset"] > 0) {
         if (accessLevel == 3) {
           failedState = false;
@@ -363,8 +410,6 @@ void loop() {
       } 
 
       readLights();
-      // const char* command = inputJson["command"];
-                                                 
     }
        
     delay(400);
@@ -372,7 +417,7 @@ void loop() {
     stringComplete = false;
   }
     
-    // check for forbidden states
+  // check for forbidden states
   if (guardEnabled && !failedState && guard(stateTL)) {
     Serial.println("---- EMERGENCY-----");
     failedState = true;

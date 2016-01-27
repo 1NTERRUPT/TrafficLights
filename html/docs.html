@@ -23,10 +23,20 @@
         Connection to Web server is done over ordinary TCP/IP network.  In this case data is send over modern WebSockets protocol, which unites comfort of ordinary HTTP protocol with real time capabilities of asyncronous communications.  Unlike ordinary HTTP you do not have to constantly reload webpage to find new information, instead small data packets with information about Traffic Lights state come from server to client asyncronously.
     </p>
     <img style="width:720px" src="media/TL-scheme.png"/>
-   <p> Lately it is quite usual to send information using so called JSON format.  This format is almost self-explanatory. We use this format to communicate with Arduino controller.  
+   <p> Lately it is quite usual to send information using so called JSON format.  This format is almost self-explanatory. We use this format to communicate with Arduino controller.
+   <h3> List of Controller commands </h3>  
     <pre><tt>
-        {button:1}                          - to send a signal that button was pressed
+        {info:1}                            - report the state of the Traffic Light controller
+        {button:1}                          - to send a signal that pedestrains button was pressed
         {username:operator, password:guess} - to send name and password to controller
+        {reset:1}                           - reset traffic if it entered in malfunction state (blinking yellow)
+        {set:1, state:2, delay:3000}        - set delay in state 2 to 3000ms
+        {turnON:3}                          - turn ON Light 3 for short period of time (till next sequence)
+        {turnON:3, turnOFF:5}               - turn ON Light 3 and turn OFF Light 5 for short period of time
+        --- sysadmin only ---
+        {guard:0}                           - turn OFF MMU (Malfunction Management Unit)
+        {guard:1}                           - turn ON  MMU (Malfunction Management Unit)
+        {set:1, state:2, pattern:50}        - set pattern in state 2 to 50 (see next section)        
     </tt></pre>
    </p>
 
