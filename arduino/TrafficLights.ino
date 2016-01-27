@@ -1,18 +1,25 @@
 #include <TimerOne.h>
 #include <ArduinoJson.h>
 
+#define POLARITY 1  // polarity of Arduino signal (which signal turns LED on)
+                    // if POLARITY=1 then HIGH voltage turns Light ON
+                    //                    LOW  voltage turns Light OFF
+                    //
+                    // if POLARITY=0 then HIGH voltage turns Light OFF
+                    //                    LOW  voltage turns Light ON
+
 // schematics of how LEDs are attached to Arduino
 // Attention in this particular setup HIGH - turns led OFF, LOW - turns led ON
 //
+int ledRP =  3;     // RED    light for pedestrian crossing
+int ledGP =  4;     // GREEN  light for pedestrian crossing
 int ledR1 =  5;     // RED    light for direction 1
 int ledY1 =  6;     // YELLOW light for direction 1
 int ledG1 =  7;     // GREEN  light for direction 1
 int ledR2 =  8;     // RED    light for direction 2
 int ledY2 =  9;     // YELLOW light for direction 2
 int ledG2 = 10;     // GREEN  light for direction 2
-int ledRP =  3;     // RED    light for pedestrian crossing
-int ledGP =  4;     // GREEN  light for pedestrian crossing
-int stateTL = 0;
+int stateTL = 0;    // current state of Traffic Light State Machine 
 
 // LED light pattern is represented by bits 1 - light is ON, 0 - light is OFF
 /*
@@ -113,76 +120,82 @@ emergency state with flashing Yellow light.
 Processing of this check takes less than 0.1ms
 */
 boolean guard(int state) {
-    // read LEDs voltages and verify corresponding bit pattern
-    unsigned int lightPattern = 0;
-    for (int i=0; i < nlightPins; i++) {        // for each LED available
-        int pin   = lightPinsBits[i][0];        // pin where LED is connected
-        int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
-        // int value = 1 - digitalRead(pin);    // check the state of light ON/OFF
-        int value = digitalRead(pin);           // check the state of light ON/OFF
-        bitWrite(lightPattern, bit, value);     // write bit in the pattern
+  // read LEDs voltages and verify corresponding bit pattern
+  unsigned int lightPattern = 0;
+  for (int i=0; i < nlightPins; i++) {        // for each LED available
+    int pin   = lightPinsBits[i][0];          // pin where LED is connected
+    int bit   = lightPinsBits[i][1];          // bit in corresponding pattern
+    int value;                                // value of light state 1=ON, 0=OFF
+    if (POLARITY == 1) {                      // normal polarity
+      value = digitalRead(pin);           // check the state of light ON/OFF
+    } else {                                  // reverse polarity
+      value = 1 - digitalRead(pin);       // check the state of light ON/OFF
     }
-    
-    /*
-    Serial.print("Guard pattern = ");
-    Serial.println(lightPattern, BIN);
-    delay(300);
-    */
-    
-    boolean emergency = true;
-    if (lightPatternsAllowed[state][0] == lightPattern) {
-        emergency = false;
-    }
-    nguard++;
-    if (nguard % 1000000 == 0) {
-        Serial.print ("Number of guard calls reached");
-        Serial.println (nguard);
-    }
-    return emergency;
-            
+    bitWrite(lightPattern, bit, value);       // write bit in the pattern
+  }
+        
+  boolean emergency = true;
+  if (lightPatternsAllowed[state][0] == lightPattern) {
+    emergency = false;
+  }
+  nguard++;
+  if (nguard % 1000000 == 0) {
+    Serial.print ("Number of guard calls reached = ");
+    Serial.println (nguard);
+  }
+  return emergency;            
 }
 
-/*
-helper function that turns lights ON/OFF for a particular sequence number "state"
-*/
+/**
+ * helper function that turns lights ON/OFF for a particular sequence number "state"
+ */
 void lights(int state) {
-    unsigned int  pattern = lightPatternsAllowed[state][0];
-    unsigned long delay   = lightPatternsAllowed[state][1];
-    // Setup JSON communication
-    StaticJsonBuffer<100> jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
+  unsigned int  pattern = lightPatternsAllowed[state][0];
+  unsigned long delay   = lightPatternsAllowed[state][1];
+  // Setup JSON communication
+  StaticJsonBuffer<100> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
         
-    // Prepare JSON output    
-    root["state"] = state;
-    root["delay"] = delay;
-    root["pattern"] = pattern;
-    root["accessLevel"] = accessLevel;
+  // Prepare JSON output    
+  root["state"] = state;
+  root["delay"] = delay;
+  root["pattern"] = pattern;
+  root["accessLevel"] = accessLevel;
     
-    root.printTo(Serial);
-    Serial.println();
-    // Serial.println(pattern, BIN);
+  root.printTo(Serial);
+  Serial.println();
+  // Serial.println(pattern, BIN);
 
-    for (int i=0; i < nlightPins; i++) {        // for each LED available
-        int pin   = lightPinsBits[i][0];        // pin where LED is connected
-        int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
-        int value = bitRead(pattern, bit);      // check the state of light ON/OFF
-        // digitalWrite(pin, 1 - value);           // turn the LED ON/OFF (1-value because of Traffic Light Schematics)
-        digitalWrite(pin, value);               // turn the LED ON/OFF
+  for (int i=0; i < nlightPins; i++) {        // for each LED available
+    int pin   = lightPinsBits[i][0];          // pin where LED is connected
+    int bit   = lightPinsBits[i][1];          // bit in corresponding pattern
+    int value = bitRead(pattern, bit);        // check the state of light ON/OFF
+ 
+    if (POLARITY == 1) {                      // normal polarity
+      digitalWrite(pin, value);               // turn the LED ON/OFF normal polarity
+    } else {                                  // reverse polarity
+      digitalWrite(pin, 1 - value);           // turn the LED ON/OFF reverse polarity
     }
-    Timer1.initialize(delay*1000);              // set light duration (in microseconds)
+        
+  }
+  Timer1.initialize(delay*1000);              // set light duration (in microseconds)
 }
  
-/*
-helper function that reads lights
-*/
+/**
+ * helper function that reads lights
+ */
 void readLights() {
   // read LEDs voltages and verify corresponding bit pattern
   unsigned int lightPattern = 0;
   for (int i=0; i < nlightPins; i++) {      // for each LED available
     int pin   = lightPinsBits[i][0];        // pin where LED is connected
     int bit   = lightPinsBits[i][1];        // bit in corresponding pattern
-    //int value = 1 - digitalRead(pin);     // check the state of light ON/OFF
-    int value = digitalRead(pin);           // check the state of light ON/OFF
+    int value;                              // value of light state 1=ON, 0=OFF
+    if (POLARITY == 1) {                    // normal polarity
+      value = digitalRead(pin);             // check the state of light ON/OFF
+    } else {                                // reverse polarity
+      value = 1 - digitalRead(pin);         // check the state of light ON/OFF reverse polarity
+    }
     bitWrite(lightPattern, bit, value);     // write bit in the pattern
   }
 
@@ -200,9 +213,9 @@ void readLights() {
 }
 
 
-/*
-Mandatory Arduino initialization stage
-*/
+/**
+ * Mandatory Arduino initialization stage
+ */
 void setup() {
     // Initialize pins attached to lights LEDs
     for (int i=0; i < nlightPins; i++) {      // for each LED available
@@ -228,9 +241,11 @@ void setup() {
 
 }
 
-/*
-Main Arduino loop
-*/
+/**
+ *
+ * Main Arduino loop
+ *
+ */
 void loop() {
 
   /* Pedestrians pressed button to request road crossing */
@@ -271,7 +286,9 @@ void loop() {
 
     }
 
-
+/**
+ * Check data from serial port and parse information
+ */
     serialEvent(); 
     if (stringComplete) {
       //Serial.print("Arduino got message: ");
@@ -286,17 +303,25 @@ void loop() {
         Serial.println(inputString);
       } else {
             
-        if (inputJson.containsKey("turnON")) {
+      if (inputJson.containsKey("turnON")) {
           int lightON = inputJson["turnON"];
           int pin = lightPinsBits[lightON][0];    // pin where LED is connected
-          digitalWrite(pin, HIGH);                // turn ON the LED
+          if (POLARITY == 1) {                    
+            digitalWrite(pin, HIGH);              // turn the LED ON normal polarity
+          } else {
+            digitalWrite(pin, LOW);               // turn the LED ON reverse polarity
+          }
       }
                 
       if (inputJson.containsKey("turnOFF")) {
         int lightOFF = inputJson["turnOFF"];
         int pin = lightPinsBits[lightOFF][0];    // pin where LED is connected
-        digitalWrite(pin, LOW);                  // turn OFF the LED
-      }
+        if (POLARITY == 1) {                    
+          digitalWrite(pin, LOW);                // turn the LED OFF normal polarity
+        } else {
+          digitalWrite(pin, HIGH);               // turn the LED OFF reverse polarity
+        }
+       }
 
       if (inputJson.containsKey("button")) {
         if (inputJson["button"]) {
