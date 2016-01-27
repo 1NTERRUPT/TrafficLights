@@ -116,16 +116,16 @@ function setup() {
   var yellow = color(255,255,  0);
   var green  = color(  0,255,  0);
   
-  r1 = new Light(crossing.x+80, crossing.y +80, red,    0);
-  y1 = new Light(crossing.x+80, crossing.y+125, yellow, 1);
-  g1 = new Light(crossing.x+80, crossing.y+170, green,  2);
+  r1 = new Light(crossing.x+80, crossing.y +80, red,    "R1");
+  y1 = new Light(crossing.x+80, crossing.y+125, yellow, "Y1");
+  g1 = new Light(crossing.x+80, crossing.y+170, green,  "G1");
 
-  r2 = new Light(crossing.x-80,  crossing.y-80, red,    3);
-  y2 = new Light(crossing.x-125, crossing.y-80, yellow, 4);
-  g2 = new Light(crossing.x-170, crossing.y-80, green,  5);
+  r2 = new Light(crossing.x-80,  crossing.y-80, red,    "R2");
+  y2 = new Light(crossing.x-125, crossing.y-80, yellow, "Y2");
+  g2 = new Light(crossing.x-170, crossing.y-80, green,  "G2");
 
-  rp = new Light(crossing.x+180, crossing.y-125, red,    6);
-  gp = new Light(crossing.x+180, crossing.y-80,  green,  7);
+  rp = new Light(crossing.x+180, crossing.y-125, red,   "RP");
+  gp = new Light(crossing.x+180, crossing.y-80,  green, "GP");
 
   trafficLight.push(r1);
   trafficLight.push(y1);
@@ -262,7 +262,9 @@ var Car = function (spawner) {
 
 Car.prototype = Object.create(Sprite.prototype); 
 
-//  Light class - displays one light of Traffic Light 
+/**
+ * Light class - displays one light of Traffic Light 
+ */
 var Light = function (x, y, colorOn, bit) {
   this.diameter = 40;                 // reasonable size of circle
   this.state = 1;                     // turn ON the light by default
