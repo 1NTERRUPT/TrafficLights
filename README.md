@@ -63,6 +63,15 @@ nodejs ./server.js /dev/ttyACM0
 ### Browser
 1. Open browser (better to use Chrome) and navigate to http://ip-address-of-raspberry:8080
 
+### Notes
+1. If you modify arduino code, you need to stop nodejs server first, and only after that recompile and reload code in Arduino.
+1. JS code requires consumes noticeable amount of computer power. You may want to close extra browser tabs.
+1. You may want to use screen to run nodejs server in background:
+```
+cd ~/TrafficLights/webserver
+screen nodejs ./server.js /dev/ttyACM0
+... Then press Ctrl-A D to detach from process ...
+``` 
 ### Credits
 1. [Icons](http://www.opensecurityarchitecture.org/cms/library/icon-library) from Open Security Architecture project 
 1. [Car images](http://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio) from SUjit Kumar Yadav by Unlucky Studio 
