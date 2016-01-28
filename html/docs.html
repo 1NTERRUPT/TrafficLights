@@ -48,13 +48,23 @@
         <p>
         <table cellspacing=0 cellpadding=2 border=1>
             <tr>
-                <th> No.</th>
-                <th colspan=8> Lights </th>
-                <th> Binary form</th>
-                <th> Decimal </th>
-                <th> Delay(ms) </th>
-                <th> Next state </th>
-                <th> Actions </th>
+                <th rowspan=2> State <br/> No.</th>
+                <th colspan=8> Lights Label and bit</th>
+                <th rowspan=2> Binary form</th>
+                <th rowspan=2> Decimal </th>
+                <th rowspan=2> Delay <br/>(ms) </th>
+                <th rowspan=2> Next state </th>
+                <th rowspan=2> Action and Comment </th>
+            </tr>
+            <tr>
+                <th> 7 </th>
+                <th> 6 </th>
+                <th> 5 </th>
+                <th> 4 </th>
+                <th> 3 </th>
+                <th> 2 </th>
+                <th> 1 </th>
+                <th> 0 </th>
             </tr>
             <tr>
                 <td> 0</td>
@@ -69,7 +79,7 @@
                 <td>10000110</td>
                 <td>134</td>
                 <td>4000</td>
-                <td>2</td>
+                <td>1</td>
                 <td>Road 1 is closed, Road 2 is opened. Pedestrains stay.</td>
             </tr>
             <tr>
@@ -85,7 +95,7 @@
                 <td>01001010</td>
                 <td>74</td>
                 <td>1000</td>
-                <td>3</td>
+                <td>2</td>
                 <td>Road 1 is closed, Road 2 is closed. Warning. Pedestrains stay.</td>
             </tr>
             <tr>
@@ -101,7 +111,7 @@
                 <td>00110010</td>
                 <td>50</td>
                 <td>4000</td>
-                <td> 4</td>
+                <td> 3</td>
                 <td>Road 1 is opened, Road 2 is closed, pedestrains stay.</td>
             </tr>
             <tr>
