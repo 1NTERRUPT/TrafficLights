@@ -118,16 +118,16 @@ function setup() {
   var yellow = color(255,255,  0);
   var green  = color(  0,255,  0);
   
-  r1 = new Light(crossing.x+80, crossing.y +80, red,    "R1");
-  y1 = new Light(crossing.x+80, crossing.y+125, yellow, "Y1");
-  g1 = new Light(crossing.x+80, crossing.y+170, green,  "G1");
+  r1 = new Light(crossing.x+80, crossing.y +80, red,    "R1", 7);
+  y1 = new Light(crossing.x+80, crossing.y+125, yellow, "Y1", 6);
+  g1 = new Light(crossing.x+80, crossing.y+170, green,  "G1", 5);
 
-  r2 = new Light(crossing.x-80,  crossing.y-80, red,    "R2");
-  y2 = new Light(crossing.x-125, crossing.y-80, yellow, "Y2");
-  g2 = new Light(crossing.x-170, crossing.y-80, green,  "G2");
+  r2 = new Light(crossing.x-80,  crossing.y-80, red,    "R2", 4);
+  y2 = new Light(crossing.x-125, crossing.y-80, yellow, "Y2", 3);
+  g2 = new Light(crossing.x-170, crossing.y-80, green,  "G2", 2);
 
-  rp = new Light(crossing.x+180, crossing.y-125, red,   "RP");
-  gp = new Light(crossing.x+180, crossing.y-80,  green, "GP");
+  rp = new Light(crossing.x+180, crossing.y-125, red,   "RP", 1);
+  gp = new Light(crossing.x+180, crossing.y-80,  green, "GP", 0);
 
   trafficLight.push(r1);
   trafficLight.push(y1);
@@ -267,12 +267,13 @@ Car.prototype = Object.create(Sprite.prototype);
 /**
  * Light class - displays one light of Traffic Light 
  */
-var Light = function (x, y, colorOn, bit) {
+var Light = function (x, y, colorOn, label, bit) {
   this.diameter = 40;                 // reasonable size of circle
   this.state = 1;                     // turn ON the light by default
   this.x = x;
   this.y = y;
   this.color = colorOn;
+  this.label = label;
   this.bit = bit;
     
   this.draw = function(){
@@ -294,8 +295,14 @@ var Light = function (x, y, colorOn, bit) {
     textAlign(CENTER, CENTER);
     
     textSize(this.diameter/2)
-    var msg = this.bit.toString();
+    var msg = this.label.toString();
     text(msg, this.x, this.y);
+    msg = this.bit.toString();
+    if (this.bit >= 2 && this.bit <=4) {
+      text(msg, this.x, this.y - 3/4*this.diameter);      
+    } else {
+      text(msg, this.x + 3/4*this.diameter, this.y);
+    }
   }
 }
 
