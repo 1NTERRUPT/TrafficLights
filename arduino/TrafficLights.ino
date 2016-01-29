@@ -1,7 +1,7 @@
 #include <TimerOne.h>
 #include <ArduinoJson.h>
 
-#define POLARITY 1  // polarity of Arduino signal (which signal turns LED on)
+#define POLARITY 0  // polarity of Arduino signal (which signal turns LED on)
                     // if POLARITY=1 then HIGH voltage turns Light ON
                     //                    LOW  voltage turns Light OFF
                     //
@@ -42,27 +42,29 @@ int nlightPins = 8;
 // set of light sequences (need to rename variable)
 unsigned int lightPatternsAll[][3] = {  
     // light pattern and delay how long it should stay in ms
-    {B10000110, 4000, 1},   // 0    normal RYG sequence
-    {B01001010, 1000, 2},   // 1
-    {B00110010, 4000, 3},   // 2
-    {B01001010, 1000, 0},   // 3    end of normal RYG sequence
+    {B00110010, 4000, 1},   // 0    R2G1
+    {B01010010, 2000, 2},   // 1    R2Y1
+    {B10010010, 1000, 3},   // 2    R2R1
+    {B10000110, 4000, 4},   // 3    G2R1
+    {B10001010, 2000, 5},   // 4    Y2R1
+    {B10010010, 1000, 0},   // 5    R2R1
     // pedestrians cross the street - added to normal RYG sequence
-    {B10010010,  500, 5},   // 4    close both directions
-    {B10010001, 3000, 6},   // 5    let pedestrains in
-    {B10010010, 1500, 0},   // 6    again close all directions
+    {B10010010, 1000, 7},   // 6    again close all directions
+    {B10010001, 3000, 8},   // 7    again close all directions
+    {B10010010, 1000, 0},   // 8    again close all directions
     // failed state - blinking yellow sequence
-    {B00000000,  200, 8},   // 7    blinking yellow sequence
-    {B01001000,  300, 7}    // 8
+    {B01001000, 1000,10},   // 9    blinking yellow sequence
+    {B00000000, 1000, 9}    //10
 };
 int nlightPatternsAll = sizeof(lightPatternsAll)/sizeof(unsigned int)/3;
 
 // where in sequence arrays different programs are located
 # define NORMAL_RYG_BEGIN       0
-# define NORMAL_RYG_END         3
-# define PEDESTRIANS_BEGIN      4
-# define PEDESTRIANS_END        6
-# define BLINKING_YELLOW_BEGIN  7
-# define BLINKING_YELLOW_END    8
+# define NORMAL_RYG_END         5
+# define PEDESTRIANS_BEGIN      6
+# define PEDESTRIANS_END        8
+# define BLINKING_YELLOW_BEGIN  9
+# define BLINKING_YELLOW_END    10
 
 int ledPinState = 0;
 volatile boolean pressed = false;
