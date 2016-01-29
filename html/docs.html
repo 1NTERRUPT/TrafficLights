@@ -14,7 +14,7 @@
     <h2>Componets of Traffic Lights System</h2>
     
     <p>
-        In the heart of Traffic Light system is Arduino microcontroller that sends signals to lights according to internal program. To protect Traffic Lights from hardware or software failures there is a special module called MMU (Malfunction Management Unit) that prevents situations with 2 simultaneous green lihgts.  In this particular case MMU is realized as a software function, in real Traffic Lights it is usually and independent hardware module.
+        In the heart of Traffic Light system is Arduino microcontroller that sends signals to lights according to internal program. To protect Traffic Lights from hardware or software failures there is a special module called <strong>MMU (Malfunction Management Unit)</strong> that independently checks that program is running correctly.  In this particular case MMU is realized as a software function, in real Traffic Lights it is usually an independent hardware module.
     </p>
     <p>
         Modern Traffic Lights have to communicate between each other, as well as with some Traffic Control Center.  This way you can adjust traffic light sequences according to the current situation with traffic.  In this case Arduino controller communicates with small web server, which runs on Raspberry Pi.  The data between RPi and Arduino goes over serial port.  
