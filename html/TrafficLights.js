@@ -26,6 +26,7 @@ var accessLevel = 0;
 
 var girl;
 var pedestrianIsle;
+var carSound0, carSound1;
 
 function preload() {
   // check name and password
@@ -42,23 +43,23 @@ function preload() {
     var data = '{"username":'+username+', "password":'+password+'}';
     console.log('Transmit', data);
     socket.emit('message', data);                   // send password to Arduino controller
-    accessLevel = -1;    
+    accessLevel = -1;                               // set accessLevel to undefined, while waiting for Arduino reply
   }
   
   console.log('User level=', accessLevel);
   
   if (! accessLevel ) {
     noLoop();
-    //remove();
   }
-  
-}
 
+}
+/**
+ * Function setup is called only once
+ */
 function setup() {
   var stopLine;             // stopLine
-  
   createCanvas(600, 600);   // set up the canvas
-
+    
   heading = createDiv('');
   heading.position(width+20,10);
 
@@ -170,10 +171,8 @@ function setup() {
                               crossing.height, crossing.height );
   pedestrianIsle.button = false;    // pedestrian Isle button to cross the road is not pressed
   
-  //mySound.setVolume(0.7);
-
   // create humans on pedestrian crossing
-  girl = createSprite(width-10, crossing.y+crossing.width/2, 24, 32);
+  girl = createSprite(width-10, crossing.y+crossing.width/2 + 10, 24, 32);
 
   girl.addAnimation("up",    "media/girl/up-0.png",    "media/girl/up-1.png",   "media/girl/up-2.png", "media/girl/up-1.png");
   girl.addAnimation("left",  "media/girl/left-0.png",  "media/girl/left-1.png", "media/girl/left-2.png", "media/girl/left-1.png");
@@ -182,8 +181,15 @@ function setup() {
   girl.velocity.x = -0.5;
   girl.velocity.y = -0;
   
+  carSound0 = loadSound('media/car0.mp3');
+  carSound1 = loadSound('media/car1.mp3');
+  carSound0.setVolume(0.7);
+  carSound1.setVolume(0.7);
 }
 
+/**
+ * Crossing definition
+ */
 var Crossing = function(x, y, w){
   this.x = x;
   this.y = y;
@@ -210,6 +216,9 @@ var Crossing = function(x, y, w){
   }
 }
 
+/**
+ * The special cell that emits new cars
+ */
 var CarSpawner = function (lane, road) {
   Sprite.call (this, 0, 0, 80, 30);
   this.depth = allSprites.maxDepth()+1;
@@ -233,6 +242,9 @@ var CarSpawner = function (lane, road) {
 
 CarSpawner.prototype = Object.create(Sprite.prototype); 
 
+/**
+ * Car
+ */ 
 var Car = function (spawner) {
   Sprite.call (this, 0, height/2+10, 50, 50);
   this.depth = allSprites.maxDepth()+1;
@@ -341,7 +353,7 @@ function draw() {
     girl.velocity.x = -0.5;
     girl.velocity.y = -0;
     girl.position.x = width-10, 
-    girl.position.y = crossing.y+crossing.width/2;
+    girl.position.y = crossing.y+crossing.width/2 + 10;
   }
 
   // remove cars that left the canvas and unblock all cars
@@ -355,21 +367,16 @@ function draw() {
   
   for (i=0; i < cars.length; i++){
     car = cars[i];
-    if (car.overlap(stopLines, carStopLineCollision) ) {
-    } else if (car.overlap(cars,carCollision)) {
-      
-    } else { 
-      if(car.road === 0){ 
-        car.velocity.y = -car.maxSpeed;
+    car.overlap(stopLines, carStopLineCollision);
+    car.overlap(cars,      carCollision);
+    if (car.overlap(girl)) {
+        car.blocked = true;
         car.velocity.x = 0;
-      } else {
-        car.velocity.x = car.maxSpeed;
         car.velocity.y = 0;
-      }
     }
         
     if (! car.blocked ) {
-      if (car.road === 0){
+      if (car.road == 0){
         car.velocity.x = car.maxSpeed;
         car.velocity.y = 0;
       } else if (car.road === 1){
@@ -379,11 +386,6 @@ function draw() {
     } else {
       car.velocity.x = 0;
       car.velocity.y = 0;
-      if (car.road === 0 && g2 || car.road === 0 && g1) {
-        //if (! mySound.isPlaying) {
-        //  mySound.play();         
-        //}
-      }
     }
     
   }
@@ -437,19 +439,44 @@ function draw() {
  */                          
 function carCollision(car1, car2) {
   
-  if (car1.road == 0 && car1.position.x < car2.position.x 
-      && abs(car2.position.y-car1.position.y)<(car1.height/2+car2.width/2)*car1.scale )  {
+  // horizontal road car hit horizontal road car from behind
+  if (car1.road == 0 && car2.road == 0 && car1.position.x < car2.position.x ) {
     car1.velocity.x = 0;
     car1.velocity.y = 0;
     car1.blocked = true;
   }
   
-  if (car1.road === 1 && car1.position.y > car2.position.y 
-      && abs(car2.position.x-car1.position.x)<(car1.height/2+car2.width/2)*car1.scale )  {
+  // vertical road
+  if (car1.road == 1 && car2.road == 1 && car1.position.y > car2.position.y) {
     car1.velocity.x = 0;
     car1.velocity.y = 0;
     car1.blocked = true;
   } 
+
+  // horizontal road car hit vertical road car 
+  var sep = car1.height/2 + car2.width/2
+  if (car1.road == 0 && car2.road == 1 && abs(car1.position.x - car2.position.x + sep) < 5 
+      && abs(car2.position.y-car1.position.y)< abs(car2.position.x-car1.position.x) )  {
+    car1.velocity.x = 0;
+    car1.velocity.y = 0;
+    car1.blocked = true;
+    if (! carSound0.isPlaying()) {
+       carSound0.play();         
+    }
+  }
+  
+
+  var sep = car1.width/2 + car2.height/2
+  // vertical road car hit horisontal road car 
+  if (car1.road == 1 && car2.road == 0 && abs(car1.position.y - car2.position.y - sep) < 5
+      && abs(car2.position.x-car1.position.x)< abs(car2.position.y-car1.position.y) )  {
+    car1.velocity.x = 0;
+    car1.velocity.y = 0;
+    car1.blocked = true;
+    if (! carSound1.isPlaying()) {
+       carSound1.play();         
+    }
+  }
   
 }
 
